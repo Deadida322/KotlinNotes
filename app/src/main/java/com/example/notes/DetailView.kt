@@ -17,8 +17,6 @@ class DetailView : AppCompatActivity() {
     private var from: Long = 0
     private var to: Long = 0
 
-
-
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         //Получение значений, переданных в интент по клику

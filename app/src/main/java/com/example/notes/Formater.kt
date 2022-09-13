@@ -6,9 +6,14 @@ import java.util.*
 /**
  * Класс для форматирования дат из Long в другие представления
  * */
-class Formater(date: Long) {
-
+class Formater(date: Long = 0) {
     var date = date
+
+    init {
+        if (date == 0.toLong()){
+            this.date = getCurrentDateLong()
+        }
+    }
     /*
     * Функция, прервщающая Long в Дату в String-формате
     * */
@@ -25,5 +30,23 @@ class Formater(date: Long) {
     * Функция, извлекающая время из строки
     * */
     fun getTimeFromString(): String = convertLongToTime().split(" ").toTypedArray()[1].toString()
+    /*
+    * Получение даты Long формате
+    * */
+    fun getCurrentDateLong(): Long {
+        var format = java.text.SimpleDateFormat("dd-MM-yyyy")
+        return format.parse(format.format(Date())).time.toLong()
+    }
+    fun getCurrentDateTimeLong(): Long {
+        var format = java.text.SimpleDateFormat("dd-MM-yyyy hh:mm")
+        return format.parse(format.format(Date())).time.toLong()
+    }
+
+    fun getCurrentTimeLong(): Long {
+        var format = java.text.SimpleDateFormat("hh:mm")
+        return format.parse(format.format(Date())).time.toLong()+4*3600000
+    }
+
+
 
 }

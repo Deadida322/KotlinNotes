@@ -1,5 +1,6 @@
 package com.example.notes
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -19,8 +20,8 @@ class MainActivity : AppCompatActivity() {
     * Инициализация необходимых переменных
     * */
     private lateinit var mainActivitiClass: ActivityMainBinding //подключение байндинга для работы с xml элементами
-    private var selectedDate: Long = getCurrentDateLong()
-
+    private var selectedDate: Long = Formater().getCurrentDateLong()
+    private lateinit var adptr: NoteAdapter
     private var selectedNotes = mutableListOf<Note>() //объявление пустого списка для сортировки элементов
 
     private val notes = mutableListOf(
@@ -49,15 +50,8 @@ class MainActivity : AppCompatActivity() {
         }
         selectedNotes.sortBy { it.date_start} //сортировка по дате добавления заметки
         return selectedNotes
+    }
 
-    }
-    /*
-    * Получение даты Long формате
-    * */
-    fun getCurrentDateLong(): Long {
-        var format = SimpleDateFormat("dd-MM-yyyy")
-        return format.parse(format.format(Date())).time.toLong()
-    }
     /*
     * Запуск активити с отображение конкретной заметки и передача в него параметров
     * */
@@ -71,15 +65,21 @@ class MainActivity : AppCompatActivity() {
         startActivity(intent) //Запуск активити с заданными переменными
     }
 
+    fun openNewNote() {
+        val intent = Intent(this, NewNote::class.java)
+        startActivityForResult(intent, 123)
+    }
+
+    @SuppressLint("SimpleDateFormat")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mainActivitiClass = ActivityMainBinding.inflate(layoutInflater)
         setContentView(mainActivitiClass.root)
         var recyclerView: RecyclerView = mainActivitiClass.notesContainer
         recyclerView.layoutManager = LinearLayoutManager(this) //Задание layout для RecyclerView
-        var adptr = NoteAdapter(onItemClick()) //Создание экземпляра адаптера заметки
+        this.adptr = NoteAdapter(onItemClick()) //Создание экземпляра адаптера заметки
         recyclerView.adapter = adptr
-        adptr.setData(filterNotes()) //Обновление данных в recycler в соответствии с текущей датой
+        this.adptr.setData(filterNotes()) //Обновление данных в recycler в соответствии с текущей датой
         //Задание функции, которая будет слушать изменение даты в календаре и запускать фильтр в соответствии с выбранной датой
         mainActivitiClass.calendar.setOnDateChangeListener { view, year, month, dayOfMonth ->
             var date = "$year-${"%02d".format(month+1)}-${"%02d".format(dayOfMonth)}"
@@ -87,7 +87,24 @@ class MainActivity : AppCompatActivity() {
             selectedDate = format.parse(date).time
             adptr.setData(filterNotes()) //Обновление заметок в RecyclerView
         }
+        mainActivitiClass.newNote.setOnClickListener {
+            openNewNote()
+        }
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if(requestCode==123 && resultCode== RESULT_OK){
+            if (data!=null){
+                var title = data.getStringExtra("name").toString()
+                var description = data.getStringExtra("description").toString()
+                var date_start = data.getLongExtra("date_start", 0)
+                var date_finish = data.getLongExtra("date_finish", 0)
+                var id = this.notes.size + 1
+                this.notes.add(Note(id, date_start, date_finish, title, description))
+                this.adptr.setData(filterNotes())
+            }
+        }
+    }
 
 }
